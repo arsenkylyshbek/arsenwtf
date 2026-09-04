@@ -1,26 +1,515 @@
 @import "tailwindcss";
+@import "./holo.css";
 
+/* ---------------------------------------------------------------------------
+   DESIGN TOKENS
+   Every value the site is allowed to use. Spec mode reads these back out.
+   --------------------------------------------------------------------------- */
+@theme {
+  /* — Typefaces ————————————————————————————————————————————————
+     Geist    → display. Headlines only.
+     Inter    → body. Prose, UI, anything read in sentences.
+     PaperMono→ metadata. Labels, years, measurements, spec mode. */
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-paper-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* ————————————————————————————————————————————————————————————————
+     THE METADATA FACE — currently Inter, on trial.
+
+     Everything that isn't prose (years, job titles, section labels, spec
+     readouts) points here rather than at a family directly, so the whole
+     register moves as one.
+
+     TO ROLL BACK TO PAPER MONO, change these three lines:
+       --font-meta:              var(--font-mono)
+       --text-meta--letter-spacing: 0.08em
+       and drop `font-variant-numeric` from .meta below.
+     Paper Mono is still loaded, so the revert is instant.
+     ———————————————————————————————————————————————————————————————— */
+  --font-meta: var(--font-sans);
+
+  /* — Ground ———————————————————————————————————————————————————
+     Warm cream. Never #fff. The texture layers sit on top of --color-paper. */
+  /* Sits brighter than the ground actually reads — the grain multiplies it
+     back down by roughly two steps. */
+  --color-paper: #fbf9f3;
+  --color-paper-deep: #efebe0;
+  --color-paper-edge: #e0dbcc;
+
+  /* — Ink ——————————————————————————————————————————————————————
+     Warm near-black. Never #000. Three steps, no more. */
+  --color-ink: #1c1b17;
+  --color-ink-muted: #6d6a60;
+  --color-ink-faint: #a5a196;
+  --color-rule: #d8d3c4;
+
+  /* — Signal ————————————————————————————————————————————————————
+     Only ever appears in spec mode. The page itself has no accent colour,
+     which is what makes the overlay read as a separate layer.
+     blue = structure (grid, column, baseline)
+     red  = measurement (spacing, size) */
+  --color-spec-structure: #2f5bff;
+  --color-spec-measure: #e0483f;
+
+  /* — Space —————————————————————————————————————————————————————
+     8px base unit. Everything on the page is a multiple.
+     Kept out of Tailwind's --spacing-* namespace on purpose so the numeric
+     scale (p-4, gap-6, …) stays intact. Reach for these with var(). */
+  --layout-unit: 8px;
+  --layout-gutter: 24px;
+  --layout-column: 680px;
+  --layout-rail: 160px;
+  /* The rail is separated by space alone — no rule, no fill. That only reads
+     as deliberate if the gap is big. Below ~96px it reads as cramped. */
+  --layout-rail-gap: 112px;
+
+  /* — Type scale ————————————————————————————————————————————————
+     Minor third off a 16px base, rounded to whole px. */
+  /* Small-label scale. The site's own metadata no longer uses this — it
+     matches its surroundings instead — but spec mode's chrome still does. */
+  --text-meta: 11px;
+  --text-meta--line-height: 16px;
+  --text-meta--letter-spacing: 0.05em;
+
+  --text-body: 16px;
+  --text-body--line-height: 28px;
+  --text-body--letter-spacing: -0.006em;
+
+  --text-lead: 20px;
+  --text-lead--line-height: 32px;
+  --text-lead--letter-spacing: -0.014em;
+
+  --text-display: 44px;
+  --text-display--line-height: 48px;
+  --text-display--letter-spacing: -0.032em;
+
+  /* — Radius ————————————————————————————————————————————————————
+     Barely there. Enough to take the machined edge off a corner without the
+     thing reading as a rounded card — at this scale you notice it only if
+     you go back to square. */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  /* The accent button is the one exception to "slightly". Ported from dial's
+     0.7em, because the softness of that corner is half of why the button
+     looks the way it does. */
+  --radius-pill: 0.7em;
+
+  /* — Motion ————————————————————————————————————————————————————— */
+  --ease-out-paper: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   ACCENTS
+   Five sets, each hand-picked rather than computed from one hue — generated
+   ramps go muddy in green and chalky in amber. Every set keeps the same
+   relationships as the original blue: top stop lightest, bottom ~12% darker,
+   edge darker still, glow a desaturated version of the mid.
+
+   --accent-glow is space-separated channels so it can take an alpha via
+   rgb(var(--accent-glow) / 0.45).
+   --------------------------------------------------------------------------- */
+:root,
+[data-accent="blue"] {
+  --accent-top: #6da3e2;
+  --accent-mid: #5a92d4;
+  --accent-bottom: #4a80c6;
+  --accent-edge: #3f74b5;
+  --accent-glow: 40 90 150;
+}
+
+[data-accent="violet"] {
+  --accent-top: #9a8ade;
+  --accent-mid: #8877d1;
+  --accent-bottom: #7565c2;
+  --accent-edge: #6857b0;
+  --accent-glow: 78 60 148;
+}
+
+[data-accent="green"] {
+  --accent-top: #6bb887;
+  --accent-mid: #56a773;
+  --accent-bottom: #469460;
+  --accent-edge: #3c8253;
+  --accent-glow: 38 106 70;
+}
+
+[data-accent="amber"] {
+  --accent-top: #dfa452;
+  --accent-mid: #d3933d;
+  --accent-bottom: #c5812d;
+  --accent-edge: #b37124;
+  --accent-glow: 146 96 28;
+}
+
+[data-accent="rose"] {
+  --accent-top: #dd8489;
+  --accent-mid: #d16f75;
+  --accent-bottom: #c35d64;
+  --accent-edge: #b24f56;
+  --accent-glow: 146 58 66;
+}
+
+/* ---------------------------------------------------------------------------
+   BASE
+   --------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html {
+  /* Reserve the scrollbar gutter always, so locking scroll for a modal can't
+     shift the whole page sideways by its width. */
+  scrollbar-gutter: stable;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Rail anchors jump between sections; smooth makes the movement legible.
+   Suppressed under reduced-motion further down. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }
 
+/* Also on html so overscroll bounce shows paper, not white. */
+html {
+  background-color: var(--color-paper);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  letter-spacing: var(--text-body--letter-spacing);
+}
+
+::selection {
+  background: #dfd8c2;
+  color: var(--color-ink);
+}
+
+/* ---------------------------------------------------------------------------
+   THE SHELL
+   Rail + content, centred as one unit. Pinning the rail to the viewport edge
+   would strand it in the corner on a wide display; centring the pair keeps the
+   composition intact at any width.
+
+   Used by both the page and the spec overlay, so the guides can never drift
+   out of alignment with the content they describe.
+   --------------------------------------------------------------------------- */
+.shell {
+  width: 100%;
+  max-width: calc(
+    var(--layout-rail) + var(--layout-rail-gap) + var(--layout-column) +
+      var(--layout-gutter) * 2
+  );
+  margin-inline: auto;
+  padding-inline: var(--layout-gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+
+/* Stacked below md: rail on top, then content. No menu, no disclosure —
+   the reading order just stays honest. */
+@media (min-width: 768px) {
+  .shell {
+    flex-direction: row;
+    gap: var(--layout-rail-gap);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   METADATA
+   One class for every non-prose label, so the register is defined in a single
+   place instead of being reassembled from utilities at each call site.
+   --------------------------------------------------------------------------- */
+.meta {
+  font-family: var(--font-meta);
+  /* Metadata matches whatever it sits beside — body size in a list row, rail
+     size in the rail. It is set apart by COLOUR alone, never by shrinking.
+     Same trick rauchg uses for view counts: full size, dropped to grey. */
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  /* Mono gave aligned digits for free. Inter doesn't, and the year column is
+     right-aligned — without this, 2024 and 1969 sit on different verticals. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   ACCENT SWATCHES
+   Selection is expressed in CSS off the root attribute rather than in React
+   state — that keeps the control and the page reading from one source, and
+   means the ring is already correct on the very first paint.
+   --------------------------------------------------------------------------- */
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgb(28 27 23 / 0.15);
+  opacity: 0.6;
+  cursor: pointer;
+  background: linear-gradient(
+    180deg,
+    var(--accent-top) 0%,
+    var(--accent-mid) 45%,
+    var(--accent-bottom) 100%
+  );
+  transition:
+    opacity 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.swatch:hover {
+  opacity: 1;
+}
+
+[data-accent="blue"] .swatch-blue,
+[data-accent="violet"] .swatch-violet,
+[data-accent="green"] .swatch-green,
+[data-accent="amber"] .swatch-amber,
+[data-accent="rose"] .swatch-rose {
+  opacity: 1;
+  border-color: rgb(28 27 23 / 0.4);
+  /* Paper-coloured gap, then a hairline — the ring reads as engraved rather
+     than as a second border. */
+  box-shadow:
+    0 0 0 2px var(--color-paper),
+    0 0 0 3px rgb(28 27 23 / 0.28);
+}
+
+/* ---------------------------------------------------------------------------
+   PILLS
+   One interactive shape, two states:
+
+     rest / hover → a quiet neutral pill, the way a tab bar marks the thing
+                    under your cursor without committing to it
+     active       → the full accent button
+
+   The negative inline margin cancels the padding, so the pill grows outward
+   from the text instead of pushing it sideways. Without it, a row would jump
+   8px right the moment it became active.
+   --------------------------------------------------------------------------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding-inline: 8px;
+  margin-inline: -8px;
+  border-radius: var(--radius-pill);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.pill:not(.pill-accent):hover {
+  background-color: rgb(28 27 23 / 0.06);
+}
+
+/* Ported from dial's .cta — the gradient, edge, glow and both insets are the
+   original values. Only the colour is swapped for tokens.
+   Shared with the rail's sliding indicator so the two can never drift. */
+.pill-accent,
+.rail-indicator-active {
+  color: #fff;
+  background: linear-gradient(
+    180deg,
+    var(--accent-top) 0%,
+    var(--accent-mid) 45%,
+    var(--accent-bottom) 100%
+  );
+  border: 1px solid var(--accent-edge);
+  box-shadow:
+    0 4px 14px rgb(var(--accent-glow) / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    inset 0 -1px 2px rgb(0 0 0 / 0.12);
+}
+
+.pill-accent {
+  font-weight: 500;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+}
+
+.pill-accent:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 6px 20px rgb(var(--accent-glow) / 0.55),
+    inset 0 1px 0 rgb(255 255 255 / 0.45);
+}
+
+.pill-accent:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+/* ---------------------------------------------------------------------------
+   RAIL INDICATORS
+   Two shared layers that travel between items rather than one background per
+   item switching on and off. Position comes from translate and size from
+   width/height, both measured off the real rows — so the shape follows label
+   lengths exactly instead of guessing.
+   --------------------------------------------------------------------------- */
+.rail-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  border-radius: var(--radius-pill);
+  transition:
+    transform 0.34s var(--ease-out-paper),
+    width 0.34s var(--ease-out-paper),
+    height 0.34s var(--ease-out-paper),
+    opacity 0.2s ease;
+}
+
+.rail-indicator-hover {
+  z-index: 0;
+  background-color: rgb(28 27 23 / 0.06);
+}
+
+.rail-indicator-active {
+  z-index: 0;
+}
+
+/* Sits above the indicators so the labels stay readable while one slides
+   underneath them. */
+.rail-item {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding-inline: 8px;
+  margin-inline: -8px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+/* The delay is the point: the label turns white as the pill arrives under it,
+   not while it's still crossing empty paper. Leaving has no delay, so the
+   outgoing label darkens immediately. */
+.rail-item-active {
+  color: #fff;
+  font-weight: 500;
+  transition: color 0.18s ease 0.15s;
+}
+
+/* ---------------------------------------------------------------------------
+   PAPER TEXTURE
+   Three stacked noise fields, all multiply-blended into the cream ground.
+
+     1. mottle  — large, soft density variation. The thing that stops it
+                  reading as flat colour.
+     2. fibre   — turbulence stretched horizontally into streaks. The thing
+                  that stops it reading as generic noise and starts reading
+                  as pulp.
+     3. grain   — fine tooth. The thing you only notice up close.
+
+   Then a directional top-left light and a wide vignette to give the sheet
+   some dimension.
+   --------------------------------------------------------------------------- */
+/* Absolute, not fixed: the texture travels with the document, so the page
+   reads as one long sheet of paper rather than content sliding over a
+   stationary backdrop. */
+.paper-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Except the lighting. A radial gradient stretched over a 6000px document
+   becomes a giant top-to-bottom luminance ramp; kept fixed, it stays a light
+   in the room that the sheet moves under. Swap this class onto the other
+   layers if you'd rather everything scroll together. */
+.paper-layer--fixed {
+  position: fixed;
+}
+
+/* Large-scale density variation. Kept very low — past ~0.06 it stops reading
+   as paper and starts reading as a dirty wall. feComponentTransfer clips the
+   noise into a narrow band around mid so the blobs stay gentle. */
+.paper-mottle {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='900'%3E%3Cfilter id='m' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.45' intercept='0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='900' height='900' filter='url(%23m)'/%3E%3C/svg%3E");
+  background-size: 900px 900px;
+  mix-blend-mode: multiply;
+  opacity: 0.07;
+}
+
+/* Turbulence stretched horizontally into pulp fibres. Barely there by design. */
+.paper-fibre {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.01 0.45' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.5'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='420' height='420' filter='url(%23f)'/%3E%3C/svg%3E");
+  background-size: 420px 420px;
+  mix-blend-mode: multiply;
+  opacity: 0.065;
+}
+
+/* The tooth. Two dials, and they do different jobs:
+     baseFrequency → grain SIZE. Lower = bigger cells. 0.35 ≈ 3 CSS px.
+     numOctaves    → grain UNIFORMITY. 1 keeps every cell the same size, which
+                     is what reads as "bigger grain". More octaves stack finer
+                     detail on top and just muddy it back into a blur.
+   The steep feFuncA (slope 1.5, intercept -0.3) pushes the cells apart in
+   value so each one stays distinct instead of dissolving into its neighbours. */
+.paper-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.35' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='1.5' intercept='-0.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 300px 300px;
+  mix-blend-mode: multiply;
+  opacity: 0.2;
+}
+
+/* Multiplying grey noise over cream desaturates it. This puts the warmth back,
+   and lights the sheet from the top-left so it has a direction. */
+.paper-warmth {
+  background: linear-gradient(
+    rgba(255, 247, 226, 0.22),
+    rgba(255, 247, 226, 0.22)
+  );
+  mix-blend-mode: soft-light;
+}
+
+.paper-light {
+  background:
+    radial-gradient(
+      110% 80% at 10% -5%,
+      rgba(255, 253, 247, 0.5) 0%,
+      rgba(255, 253, 247, 0) 62%
+    ),
+    radial-gradient(
+      140% 120% at 55% 125%,
+      rgba(163, 148, 111, 0.06) 0%,
+      rgba(163, 148, 111, 0) 65%
+    );
+}
+
+/* Screens that can't do the blend work still get a clean warm ground. */
+@supports not (mix-blend-mode: multiply) {
+  .paper-mottle,
+  .paper-fibre,
+  .paper-grain,
+  .paper-warmth {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

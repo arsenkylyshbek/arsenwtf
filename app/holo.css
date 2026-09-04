@@ -1,0 +1,216 @@
+/* ---------------------------------------------------------------------------
+   HOLO
+   The stylesheet for the player cards. Written against the variable contract
+   in components/holo/engine.ts — every number here is written per frame by
+   applyFrame(), and every image by applyFoil().
+
+   The rule the original build states and this one keeps: THE PRINT NEVER
+   CHANGES. Only the foil above it moves. Here the print is the site accent,
+   so the cards recolour with the picker instead of introducing a palette.
+   --------------------------------------------------------------------------- */
+
+.holo-scene {
+  perspective: 1100px;
+}
+
+.holo-card {
+  position: relative;
+  aspect-ratio: 0.7;
+  border-radius: 10px;
+  isolation: isolate;
+  transform-style: preserve-3d;
+  /* Driven per frame; the transition only catches the gap between rAF frames
+     when the loop parks, so the card settles rather than stepping. */
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.12s ease-out;
+  box-shadow:
+    0 1px 2px rgb(28 27 23 / 0.1),
+    0 18px 40px -22px rgb(28 27 23 / 0.5);
+}
+
+/* Every layer fills the card and clips to its radius. */
+.holo-card > * {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* THE PRINT. Fixed for the life of the card — everything above is light
+   landing on it. */
+.holo-body {
+  background: linear-gradient(
+    150deg,
+    var(--accent-top) 0%,
+    var(--accent-mid) 45%,
+    var(--accent-bottom) 100%
+  );
+}
+
+/* ── The foil: three generic slots ──────────────────────────────────────────
+   What each paints, how fast it moves and how it composites all come from the
+   material. These rules never know which material is mounted, which is what
+   makes adding one an edit to the array rather than to this file. */
+.holo-foil,
+.holo-foil--b,
+.holo-foil--c {
+  background-repeat: repeat;
+  mix-blend-mode: var(--blend, overlay);
+}
+
+.holo-foil {
+  background-image: var(--l1-img, none);
+  background-size: var(--l1-size, cover);
+  background-position: var(--l1-x, 50%) var(--l1-y, 50%);
+  background-blend-mode: var(--l1-bgblend, normal);
+  mix-blend-mode: var(--l1-blend, overlay);
+  filter: var(--l1-filter, none);
+  opacity: var(--l1-o, 0);
+}
+
+.holo-foil--b {
+  background-image: var(--l2-img, none);
+  background-size: var(--l2-size, cover);
+  background-position: var(--l2-x, 50%) var(--l2-y, 50%);
+  background-blend-mode: var(--l2-bgblend, normal);
+  mix-blend-mode: var(--l2-blend, overlay);
+  filter: var(--l2-filter, none);
+  opacity: var(--l2-o, 0);
+}
+
+.holo-foil--c {
+  background-image: var(--l3-img, none);
+  background-size: var(--l3-size, cover);
+  background-position: var(--l3-x, 50%) var(--l3-y, 50%);
+  background-blend-mode: var(--l3-bgblend, normal);
+  mix-blend-mode: var(--l3-blend, overlay);
+  filter: var(--l3-filter, none);
+  opacity: var(--l3-o, 0);
+}
+
+/* THE STREAK. Smears along the direction of travel, so a fast pass leaves a
+   trail and a slow one leaves a round highlight. */
+.holo-smear {
+  background: linear-gradient(
+    var(--smear-angle, 0deg),
+    transparent 30%,
+    rgb(255 255 255 / 0.5) 50%,
+    transparent 70%
+  );
+  mix-blend-mode: soft-light;
+  opacity: var(--smear, 0);
+}
+
+/* THE SWEET SPOT. Comes up across the whole card at once — that simultaneity
+   is what reads as the material aligning rather than one sheet brightening. */
+.holo-spot {
+  background: radial-gradient(
+    farthest-corner circle at var(--gx, 50%) var(--gy, 50%),
+    rgb(255 255 255 / 0.75) 0%,
+    rgb(255 255 255 / 0.25) 35%,
+    transparent 70%
+  );
+  mix-blend-mode: hard-light;
+  opacity: var(--spot, 0);
+}
+
+/* Fine print grain, so the card reads as a printed surface rather than a
+   clean gradient. Static — it belongs to the stock, not to the light. */
+.holo-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  mix-blend-mode: overlay;
+  opacity: 0.14;
+}
+
+/* The direct highlight. No lag: a highlight is simply where the light is. */
+.holo-glare {
+  background: radial-gradient(
+    farthest-corner circle at var(--gx, 50%) var(--gy, 50%),
+    rgb(255 255 255 / 0.5) 5%,
+    rgb(255 255 255 / 0.1) 30%,
+    transparent 65%
+  );
+  mix-blend-mode: overlay;
+  opacity: var(--glare-o, 0.5);
+}
+
+/* EDGE CATCH. Each border lights independently by how much it faces the
+   viewer, so the card reads as having thickness instead of a uniform rim. */
+.holo-edges {
+  box-shadow:
+    inset 1px 0 0 rgb(255 255 255 / calc(var(--edge-l, 0) * 0.55)),
+    inset -1px 0 0 rgb(255 255 255 / calc(var(--edge-r, 0) * 0.55)),
+    inset 0 1px 0 rgb(255 255 255 / calc(var(--edge-t, 0) * 0.55)),
+    inset 0 -1px 0 rgb(255 255 255 / calc(var(--edge-b, 0) * 0.55)),
+    inset 0 0 0 1px rgb(255 255 255 / 0.14);
+}
+
+/* ── The content, above the foil ────────────────────────────────────────────
+   Type sitting UNDER the sheet gets eaten by it: the foil is light, and light
+   lands on the print rather than on what's written over it. */
+.holo-content {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  color: #fff;
+  /* Highlight opposite the shadow, both from tilt — the type catches light as
+     if pressed into the stock. */
+  text-shadow:
+    var(--emboss-x, 0) var(--emboss-y, 0) 0 rgb(255 255 255 / 0.4),
+    calc(var(--emboss-x, 0) * -1) calc(var(--emboss-y, 0) * -1) 1px
+      rgb(0 0 0 / 0.3);
+  /* Lifted off the print so the foil can't wash it out. */
+  transform: translateZ(18px);
+}
+
+.holo-number {
+  font-family: var(--font-display);
+  font-size: 40px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.holo-position {
+  font-family: var(--font-meta);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  opacity: 0.85;
+}
+
+.holo-club {
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.holo-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid rgb(255 255 255 / 0.28);
+  padding-top: 8px;
+}
+
+.holo-stat-value {
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1.1;
+}
+
+.holo-stat-label {
+  font-family: var(--font-meta);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  opacity: 0.72;
+}
+
+/* Motion is the entire effect, so there's nothing to degrade to but a still
+   card. The rAF loop also refuses to start under this query. */
+@media (prefers-reduced-motion: reduce) {
+  .holo-card {
+    transform: none;
+    transition: none;
+  }
+}

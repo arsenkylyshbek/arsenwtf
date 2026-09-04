@@ -1,0 +1,23 @@
+{
+  "$comment": "Written by bay after a successful ship. Safe to commit, safe to delete.",
+  "slug": "eslia",
+  "decided": {
+    "build": "npm run build",
+    "image": null,
+    "needs": [],
+    "start": "npm run start -- -H 0.0.0.0 -p $PORT",
+    "install": "npm ci",
+    "release": null,
+    "version": "24",
+    "database": null,
+    "language": "node",
+    "toolchains": [
+      {
+        "dir": ".",
+        "version": "24",
+        "language": "node"
+      }
+    ],
+    "versionFrom": "platform default"
+  }
+}

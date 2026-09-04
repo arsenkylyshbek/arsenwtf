@@ -1,0 +1,54 @@
+{
+  "a340-600": {
+    "license": "Public domain",
+    "artist": "Adrian Pingstone (Arpingstone)",
+    "file": "File:Thai airways a340-600 hs-tna takeoff arp.jpg"
+  },
+  "787": {
+    "license": "CC BY-SA 2.0",
+    "artist": "pjs2005 from Hampshire, UK",
+    "file": "File:Boeing 787 N1015B ANA Airlines (27611880663) (cropped).jpg"
+  },
+  "a350": {
+    "license": "CC BY 2.0",
+    "artist": "Steve Lynes",
+    "file": "File:EGLF - Airbus A350-941 - F-WZNW.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:EGLF_-_Airbus_A350-941_-_F-WZNW.jpg"
+  },
+  "f22": {
+    "license": "Public domain",
+    "artist": "F-22_Raptor.JPG: Master Sgt. Andy Dunaway",
+    "file": "File:F-22 Raptor edit1 (cropped).jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:F-22_Raptor_edit1_(cropped).jpg"
+  },
+  "su57": {
+    "license": "CC BY-SA 2.0",
+    "artist": "Anna Zvereva from Tallinn, Estonia",
+    "file": "File:Sukhoi Design Bureau, 054, Sukhoi T-50 (Su-57 prototype) (49581303977).jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Sukhoi_Design_Bureau,_054,_Sukhoi_T-50_(Su-57_prototype)_(49581303977).jpg"
+  },
+  "777": {
+    "license": "CC BY-SA 2.0",
+    "artist": "Aero Icarus from Z\u00fcrich, Switzerland",
+    "file": "File:Cathay Pacific Boeing 777-200; B-HNL@HKG.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Cathay_Pacific_Boeing_777-200;_B-HNL@HKG.jpg"
+  },
+  "concorde": {
+    "license": "CC BY-SA 3.0",
+    "artist": "Eduard Marmet",
+    "file": "File:British_Airways_Concorde_G-BOAC_03.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:British_Airways_Concorde_G-BOAC_03.jpg"
+  },
+  "tu-144": {
+    "license": "CC BY-SA 2.0",
+    "artist": "clipperarctic",
+    "file": "File:Tupolev_TU-144_(6060104119).jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Tupolev_TU-144_(6060104119).jpg"
+  },
+  "sr-71": {
+    "license": "Public domain",
+    "artist": "USAF / Judson Brohmer",
+    "file": "File:Lockheed_SR-71_Blackbird.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Lockheed_SR-71_Blackbird.jpg"
+  }
+}
