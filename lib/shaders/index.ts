@@ -7,9 +7,10 @@ import { fragment as liquidPaintFragment } from "./liquid-paint.glsl";
  * a GLSL file plus one entry here; the index and studio pages pick it up.
  */
 
+/** `prop` is the parameter's name in the arsen-shaders npm package. */
 export type Control =
-  | { key: string; label: string; kind: "range"; min: number; max: number; step: number }
-  | { key: string; label: string; kind: "color" };
+  | { key: string; prop: string; label: string; kind: "range"; min: number; max: number; step: number }
+  | { key: string; prop: string; label: string; kind: "color" };
 
 export type ShaderDef = {
   slug: string;
@@ -23,17 +24,20 @@ export type ShaderDef = {
   presets: { name: string; values: Uniforms }[];
   /** Painted behind the canvas until the first frame, and forever without WebGL. */
   fallback: string;
+  /** Its React component in arsen-shaders/react. */
+  component: string;
 };
 
-const range = (key: string, label: string, min: number, max: number, step: number): Control => ({
+const range = (key: string, prop: string, label: string, min: number, max: number, step: number): Control => ({
   key,
+  prop,
   label,
   kind: "range",
   min,
   max,
   step,
 });
-const color = (key: string, label: string): Control => ({ key, label, kind: "color" });
+const color = (key: string, prop: string, label: string): Control => ({ key, prop, label, kind: "color" });
 
 export const SHADERS: ShaderDef[] = [
   {
@@ -58,27 +62,27 @@ export const SHADERS: ShaderDef[] = [
       {
         title: "glass",
         controls: [
-          range("u_ribs", "ribs", 6, 80, 1),
-          range("u_angle", "angle", -90, 90, 1),
-          range("u_refract", "refraction", -4, 4, 0.05),
-          range("u_shade", "crease", 0, 1, 0.01),
+          range("u_ribs", "ribs", "ribs", 6, 80, 1),
+          range("u_angle", "angle", "angle", -90, 90, 1),
+          range("u_refract", "refraction", "refraction", -4, 4, 0.05),
+          range("u_shade", "crease", "crease", 0, 1, 0.01),
         ],
       },
       {
         title: "light",
         controls: [
-          range("u_glow", "glow", 0, 3, 0.01),
-          range("u_height", "height", 0, 1, 0.01),
-          range("u_grain", "grain", 0, 0.15, 0.005),
+          range("u_glow", "glow", "glow", 0, 3, 0.01),
+          range("u_height", "height", "height", 0, 1, 0.01),
+          range("u_grain", "grain", "grain", 0, 0.15, 0.005),
         ],
       },
       {
         title: "colour",
         controls: [
-          color("u_deep", "deep"),
-          color("u_blue", "body"),
-          color("u_aurora", "aurora"),
-          color("u_aurora2", "aurora base"),
+          color("u_deep", "deep", "deep"),
+          color("u_blue", "body", "body"),
+          color("u_aurora", "aurora", "aurora"),
+          color("u_aurora2", "auroraBase", "aurora base"),
         ],
       },
     ],
@@ -95,6 +99,7 @@ export const SHADERS: ShaderDef[] = [
       },
     ],
     fallback: "linear-gradient(180deg, #030a2e 0%, #1236c8 80%, #1fa7a6 100%)",
+    component: "FlutedAurora",
   },
   {
     slug: "liquid-paint",
@@ -127,46 +132,46 @@ export const SHADERS: ShaderDef[] = [
       {
         title: "flow",
         controls: [
-          range("u_scale", "scale", 0.5, 5, 0.01),
-          range("u_warp", "warp", 0, 4, 0.01),
-          range("u_flow", "speed", 0, 0.3, 0.005),
-          range("u_coverage", "coverage", 0, 1, 0.01),
+          range("u_scale", "scale", "scale", 0.5, 5, 0.01),
+          range("u_warp", "warp", "warp", 0, 4, 0.01),
+          range("u_flow", "speed", "speed", 0, 0.3, 0.005),
+          range("u_coverage", "coverage", "coverage", 0, 1, 0.01),
         ],
       },
       {
         title: "ribbons",
         controls: [
-          range("u_bands", "count", 1, 15, 0.1),
-          range("u_goldMix", "gold share", 0, 1, 0.01),
-          range("u_ribbon", "width", 0.005, 0.25, 0.001),
+          range("u_bands", "ribbons", "count", 1, 15, 0.1),
+          range("u_goldMix", "goldShare", "gold share", 0, 1, 0.01),
+          range("u_ribbon", "ribbonWidth", "width", 0.005, 0.25, 0.001),
         ],
       },
       {
         title: "surface",
         controls: [
-          range("u_flakes", "glitter", 50, 600, 1),
-          range("u_sparkle", "sparkle", 0, 4, 0.01),
-          range("u_gloss", "gloss", 0, 2, 0.01),
-          range("u_thick", "thickness", 0, 0.05, 0.0005),
-          range("u_rim", "rim", 0.01, 0.3, 0.001),
+          range("u_flakes", "glitter", "glitter", 50, 600, 1),
+          range("u_sparkle", "sparkle", "sparkle", 0, 4, 0.01),
+          range("u_gloss", "gloss", "gloss", 0, 2, 0.01),
+          range("u_thick", "thickness", "thickness", 0, 0.05, 0.0005),
+          range("u_rim", "rim", "rim", 0.01, 0.3, 0.001),
         ],
       },
       {
         title: "edge",
         controls: [
-          range("u_rough", "roughness", 0, 3, 0.01),
-          range("u_shadow", "shadow", 0, 0.5, 0.01),
-          range("u_shadowSoft", "softness", 0.001, 0.08, 0.001),
-          range("u_shadowDist", "distance", 0, 0.15, 0.001),
+          range("u_rough", "roughness", "roughness", 0, 3, 0.01),
+          range("u_shadow", "shadow", "shadow", 0, 0.5, 0.01),
+          range("u_shadowSoft", "shadowSoftness", "softness", 0.001, 0.08, 0.001),
+          range("u_shadowDist", "shadowDistance", "distance", 0, 0.15, 0.001),
         ],
       },
       {
         title: "colour",
         controls: [
-          color("u_bg", "surface"),
-          color("u_blue", "paint"),
-          color("u_light", "streak"),
-          color("u_gold", "gold"),
+          color("u_bg", "surface", "surface"),
+          color("u_blue", "paint", "paint"),
+          color("u_light", "streak", "streak"),
+          color("u_gold", "gold", "gold"),
         ],
       },
     ],
@@ -180,6 +185,7 @@ export const SHADERS: ShaderDef[] = [
       },
     ],
     fallback: "#1a43a6",
+    component: "LiquidPaint",
   },
 ];
 

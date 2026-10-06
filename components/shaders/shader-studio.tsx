@@ -17,6 +17,53 @@ const FRAME_RATES = [
   { label: "60", value: 60 },
 ];
 
+const INSTALL = "npm i arsen-shaders";
+const LANGS = ["react", "js", "html"] as const;
+type Lang = (typeof LANGS)[number];
+
+const camel = (slug: string) => slug.replace(/-(\w)/g, (_, c: string) => c.toUpperCase());
+const kebab = (name: string) => name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+
+/** Code for the npm package, carrying only what differs from the defaults. */
+function buildSnippet(shader: ShaderDef, changed: Uniforms, lang: Lang): string {
+  const controls = shader.groups.flatMap((g) => g.controls);
+  const params = Object.entries(changed)
+    .map(([key, value]) => [controls.find((c) => c.key === key)?.prop, value] as const)
+    .filter((entry): entry is readonly [string, UniformValue] => Boolean(entry[0]));
+
+  if (lang === "react") {
+    const props = params.map(([p, v]) => `  ${p}=${typeof v === "string" ? `"${v}"` : `{${v}}`}`);
+    return [
+      `import { ${shader.component} } from "arsen-shaders/react";`,
+      "",
+      `<${shader.component}`,
+      ...props,
+      `  style={{ height: 480 }}`,
+      "/>",
+    ].join("\n");
+  }
+
+  if (lang === "js") {
+    const name = camel(shader.slug);
+    const body = params.map(([p, v]) => `  ${p}: ${typeof v === "string" ? `"${v}"` : v},`);
+    return [
+      `import { mountShader, ${name} } from "arsen-shaders";`,
+      "",
+      body.length
+        ? `mountShader(document.querySelector("#hero"), ${name}, {\n${body.join("\n")}\n});`
+        : `mountShader(document.querySelector("#hero"), ${name});`,
+    ].join("\n");
+  }
+
+  const attrs = params.map(([p, v]) => `\n     data-${kebab(p)}="${v}"`).join("");
+  return [
+    `<div data-arsen-shader="${shader.slug}"${attrs}`,
+    `     style="height: 480px"></div>`,
+    "",
+    `<script src="https://cdn.jsdelivr.net/npm/arsen-shaders"></script>`,
+  ].join("\n");
+}
+
 const decimals = (step: number) => (String(step).split(".")[1] ?? "").length;
 
 /** Only what differs from the defaults — that's what the URL and snippet carry. */
@@ -44,7 +91,8 @@ export function ShaderStudio({ shader }: { shader: ShaderDef }) {
   const [maxDpr, setMaxDpr] = useState(1);
   const [fps, setFps] = useState(30);
   const [stats, setStats] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [lang, setLang] = useState<Lang>("react");
   const instanceRef = useRef<ShaderInstance | null>(null);
 
   // The URL carries the look, so a tuned shader is a link you can send.
@@ -83,20 +131,13 @@ export function ShaderStudio({ shader }: { shader: ShaderDef }) {
     return Object.keys(target).every((k) => target[k] === values[k]);
   });
 
-  const snippet = useMemo(() => {
-    const changed = diff(shader, values);
-    const lines = Object.entries(changed).map(
-      ([k, v]) => `    ${k}: ${typeof v === "string" ? `"${v}"` : v},`,
-    );
-    const valuesProp = lines.length ? `\n  values={{\n${lines.join("\n")}\n  }}` : "";
-    return `<ShaderCanvas\n  shader={getShader("${shader.slug}")!}${valuesProp}\n/>`;
-  }, [shader, values]);
+  const snippet = useMemo(() => buildSnippet(shader, diff(shader, values), lang), [shader, values, lang]);
 
-  const copy = async () => {
+  const copy = async (text: string, what: string) => {
     try {
-      await navigator.clipboard.writeText(snippet);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1400);
+      await navigator.clipboard.writeText(text);
+      setCopied(what);
+      setTimeout(() => setCopied(null), 1400);
     } catch {
       // Clipboard blocked; the snippet is on screen to select by hand.
     }
@@ -162,19 +203,60 @@ export function ShaderStudio({ shader }: { shader: ShaderDef }) {
       </div>
 
       <div className="mt-14 border-t border-rule pt-10">
-        <div className="flex items-center justify-between">
-          <h2 className="meta text-ink-faint">use it</h2>
+        <h2 className="meta text-ink-faint">use it</h2>
+        <p className="mt-2 text-pretty text-ink-muted">
+          free and open source, with the look you tuned above baked in.
+        </p>
+
+        {lang !== "html" && (
+          <div className="shader-code mt-5 flex items-center justify-between gap-4">
+            <code>{INSTALL}</code>
+            <button
+              type="button"
+              onClick={() => copy(INSTALL, "install")}
+              className={`pill meta shrink-0 ${copied === "install" ? "pill-accent" : "text-ink-faint hover:text-ink"}`}
+            >
+              {copied === "install" ? "copied" : "copy"}
+            </button>
+          </div>
+        )}
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          <div role="tablist" aria-label="language" className="flex items-center gap-x-5">
+            {LANGS.map((l) => (
+              <button
+                key={l}
+                type="button"
+                role="tab"
+                aria-selected={l === lang}
+                onClick={() => setLang(l)}
+                className={`pill meta ${l === lang ? "pill-accent" : "text-ink-muted hover:text-ink"}`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
-            onClick={copy}
-            className={`pill ${copied ? "pill-accent" : "text-ink-muted hover:text-ink"}`}
+            onClick={() => copy(snippet, "code")}
+            className={`pill ${copied === "code" ? "pill-accent" : "text-ink-muted hover:text-ink"}`}
           >
-            {copied ? "copied" : "copy"}
+            {copied === "code" ? "copied" : "copy"}
           </button>
         </div>
-        <pre className="shader-code mt-4">
+        <pre className="shader-code mt-3">
           <code>{snippet}</code>
         </pre>
+        <p className="meta mt-3 text-ink-faint">
+          <a
+            href="https://www.npmjs.com/package/arsen-shaders"
+            target="_blank"
+            rel="noreferrer"
+            className="underline decoration-ink/25 underline-offset-4 hover:text-ink"
+          >
+            all parameters on npm
+          </a>
+        </p>
       </div>
     </div>
   );
