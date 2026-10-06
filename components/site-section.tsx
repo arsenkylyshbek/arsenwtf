@@ -2,6 +2,7 @@ import type { Section } from "@/content/site";
 import { EntryList } from "@/components/entry-list";
 import { RichText } from "@/components/rich-text";
 import { SpecBox } from "@/components/spec/spec-box";
+import { Showcase } from "@/components/showcase";
 
 /**
  * One former page, now a section of the single page.
@@ -47,6 +48,8 @@ export function SiteSection({
       <div className={section.intro?.length ? "mt-8" : "mt-4"}>
         {children ?? <EntryList entries={section.entries} />}
       </div>
+
+      {section.showcase && <Showcase entries={section.entries} />}
     </section>
   );
 }

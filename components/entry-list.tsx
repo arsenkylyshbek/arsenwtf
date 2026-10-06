@@ -39,7 +39,9 @@ export function EntryList({ entries }: { entries: Entry[] }) {
 
           const row = (
             <span className="flex w-full items-baseline justify-between gap-6 text-left">
-              <span className="flex min-w-0 items-baseline gap-3">
+              {/* Phones: the note goes under the title, so a long company
+                  name and a job title never fight for one line. */}
+              <span className="flex min-w-0 flex-col leading-snug sm:flex-row sm:items-baseline sm:gap-3 sm:leading-[inherit]">
                 <span>{entry.title}</span>
                 {entry.note && (
                   <span
@@ -75,12 +77,12 @@ export function EntryList({ entries }: { entries: Entry[] }) {
                   onClick={() => setOpen(entry)}
                   onFocus={() => setHovered(entry.id)}
                   onBlur={() => setHovered(null)}
-                  className="flex h-14 w-full cursor-pointer items-center text-ink"
+                  className="flex min-h-14 w-full cursor-pointer items-center py-3 text-ink sm:h-14 sm:py-0"
                 >
                   {row}
                 </button>
               ) : (
-                <div className="flex h-14 w-full items-center text-ink-muted">
+                <div className="flex min-h-14 w-full items-center py-3 text-ink-muted sm:h-14 sm:py-0">
                   {row}
                 </div>
               )}

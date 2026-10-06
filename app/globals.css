@@ -237,7 +237,10 @@ body {
      size in the rail. It is set apart by COLOUR alone, never by shrinking.
      Same trick rauchg uses for view counts: full size, dropped to grey. */
   font-size: inherit;
-  line-height: inherit;
+  /* NOT inherited: the body's 28px is a prose measure, and a label that wraps
+     ("my lovely / family") under it falls apart into two separate lines.
+     Single-line rows don't care — their height is set by the row, not this. */
+  line-height: 1.375;
   letter-spacing: inherit;
   /* Mono gave aligned digits for free. Inter doesn't, and the year column is
      right-aligned — without this, 2024 and 1969 sit on different verticals. */
@@ -352,6 +355,15 @@ body {
 .pill-accent:active {
   transform: translateY(0);
   filter: brightness(0.97);
+}
+
+/* The accent button sitting inside a sentence. The pill's negative margin is
+   for standalone labels; in prose it would eat the spaces either side, so it
+   gets a hair of air instead, and a height that fits the 28px line. */
+.pill-inline {
+  height: 24px;
+  margin-inline: 0.1em;
+  vertical-align: baseline;
 }
 
 /* ---------------------------------------------------------------------------
@@ -512,4 +524,410 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   SHADERS
+   The canvas sits in a window: hairline edge, the site's barely-there radius,
+   and a soft drop so it reads as a pane lying on the paper rather than a hole
+   cut through it.
+   --------------------------------------------------------------------------- */
+.shader-window {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(28 27 23 / 0.12);
+  background: var(--color-paper-deep);
+  box-shadow:
+    0 1px 2px rgb(28 27 23 / 0.06),
+    0 14px 32px -16px rgb(28 27 23 / 0.28);
+  /* Keeps the radius clipping the canvas in Safari while it composites. */
+  isolation: isolate;
+}
+
+.shader-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out-paper);
+}
+
+.shader-canvas[data-ready] {
+  opacity: 1;
+}
+
+.shader-tile .shader-window {
+  transition:
+    transform 0.25s var(--ease-out-paper),
+    box-shadow 0.25s var(--ease-out-paper);
+}
+
+.shader-tile:hover .shader-window {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 2px rgb(28 27 23 / 0.06),
+    0 20px 40px -18px rgb(28 27 23 / 0.36);
+}
+
+/* Slider: hairline track in rule colour, ink up to the thumb. --fill is set
+   inline from the value, since only Firefox can style the filled part. */
+.shader-range {
+  appearance: none;
+  width: 100%;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.shader-range::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--color-ink-muted) var(--fill),
+    var(--color-rule) var(--fill)
+  );
+}
+
+.shader-range::-moz-range-track {
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-rule);
+}
+
+.shader-range::-moz-range-progress {
+  height: 2px;
+  border-radius: 999px;
+  background: var(--color-ink-muted);
+}
+
+.shader-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -6px;
+  border-radius: 999px;
+  background: var(--color-paper);
+  border: 1px solid rgb(28 27 23 / 0.3);
+  box-shadow: 0 1px 3px rgb(28 27 23 / 0.18);
+  transition: transform 0.15s ease;
+}
+
+.shader-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--color-paper);
+  border: 1px solid rgb(28 27 23 / 0.3);
+  box-shadow: 0 1px 3px rgb(28 27 23 / 0.18);
+}
+
+.shader-range:hover::-webkit-slider-thumb,
+.shader-range:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.shader-range:focus-visible {
+  outline: none;
+}
+
+.shader-range:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 3px var(--color-paper),
+    0 0 0 4px rgb(28 27 23 / 0.35);
+}
+
+/* Colour swatch. The native picker sits invisibly on top, so the click and
+   the keyboard still go to a real input. */
+.shader-swatch {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgb(28 27 23 / 0.18);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+.shader-swatch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.shader-swatch:has(input:focus-visible) {
+  box-shadow:
+    0 0 0 2px var(--color-paper),
+    0 0 0 3px rgb(28 27 23 / 0.35);
+}
+
+.shader-code {
+  overflow-x: auto;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(28 27 23 / 0.1);
+  background: rgb(28 27 23 / 0.035);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 22px;
+  letter-spacing: 0;
+  color: var(--color-ink-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   CITY MAP
+   The search is a hairline field, not a box: it should read like a line you
+   write on, the same register as the sliders around it.
+   --------------------------------------------------------------------------- */
+.city-search {
+  width: 100%;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-rule);
+  background: transparent;
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.city-search::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.city-search:focus {
+  border-bottom-color: var(--color-ink-muted);
+}
+
+.city-search::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.city-results {
+  position: absolute;
+  z-index: 30;
+  left: -8px;
+  right: -8px;
+  top: calc(100% + 6px);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(28 27 23 / 0.12);
+  background: var(--color-paper);
+  box-shadow: 0 14px 32px -16px rgb(28 27 23 / 0.35);
+}
+
+.city-result {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.city-result:hover,
+.city-result:focus-visible {
+  background: rgb(28 27 23 / 0.06);
+  outline: none;
+}
+
+/* MapLibre's cooperative-gesture hint, restyled into the site's voice. */
+.maplibregl-cooperative-gesture-screen {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-body) !important;
+  background: rgb(28 27 23 / 0.45) !important;
+}
+
+/* Where a search landed: an ink dot with a paper ring, so it reads on the
+   cream day map and the dark night one alike. */
+.city-pin {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  box-shadow:
+    0 0 0 3px var(--color-paper),
+    0 2px 8px rgb(0 0 0 / 0.35);
+}
+
+/* ---------------------------------------------------------------------------
+   SHOWCASE
+   Ported from hattori's work carousel. A frame sits fixed in the middle of the
+   column and the screenshots slide through it; the neighbours peek in at both
+   edges, dimmed. The frame is the accent, offset off the image so it reads as
+   a mount around the print rather than a border on it.
+   --------------------------------------------------------------------------- */
+.showcase {
+  --sw: 82cqw;
+  --gap: 16px;
+  --top: 8px;
+  container-type: inline-size;
+}
+
+/* Phones: a narrower frame and tighter gap, or the neighbours vanish. */
+@media (max-width: 640px) {
+  .showcase {
+    --sw: 78cqw;
+    --gap: 10px;
+  }
+}
+
+.showcase-viewport {
+  position: relative;
+}
+
+.showcase-track {
+  display: flex;
+  gap: var(--gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-inline: calc((100cqw - var(--sw)) / 2);
+  padding-block: var(--top) 52px;
+  cursor: grab;
+  outline: none;
+}
+
+.showcase-track::-webkit-scrollbar {
+  display: none;
+}
+
+.showcase-track.dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
+.showcase-track.dragging * {
+  user-select: none;
+}
+
+.showcase-slide {
+  flex: 0 0 var(--sw);
+  min-width: 0;
+  scroll-snap-align: center;
+}
+
+.showcase-shot {
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(28 27 23 / 0.1);
+  opacity: 0.4;
+  transition: opacity 0.35s var(--ease-out-paper);
+}
+
+.showcase-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.showcase-slide.on .showcase-shot {
+  opacity: 1;
+}
+
+.showcase-slide:not(.on) .showcase-shot {
+  cursor: pointer;
+}
+
+.showcase-slide.on a.showcase-shot {
+  cursor: alias;
+}
+
+.showcase-lens {
+  position: absolute;
+  top: var(--top);
+  left: 50%;
+  width: var(--sw);
+  aspect-ratio: 16 / 9;
+  transform: translateX(-50%);
+  pointer-events: none;
+  border-radius: calc(var(--radius-md) + 2px);
+  outline: 2px solid var(--accent-mid);
+  outline-offset: 5px;
+}
+
+.showcase-track:focus-visible + .showcase-lens {
+  outline-color: var(--accent-edge);
+}
+
+@keyframes showcase-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.showcase-info {
+  width: var(--sw);
+  margin: -32px auto 0;
+  animation: showcase-in 0.35s var(--ease-out-paper) both;
+}
+
+/* The pill's negative margin is for inline text; here it should sit flush
+   under the frame's corner. */
+.showcase-chip {
+  margin-inline: -5px 0;
+}
+
+/* ---------------------------------------------------------------------------
+   DOCK
+   The rail on phones: a floating paper pill along the bottom edge, in reach
+   of a thumb. It scrolls sideways when the items don't fit, and fades at both
+   ends so it's obvious there's more.
+   --------------------------------------------------------------------------- */
+.dock {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 40;
+  padding: 3px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  border-radius: 16px;
+  border: 1px solid rgb(28 27 23 / 0.1);
+  background: rgb(251 249 243 / 0.86);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  box-shadow:
+    0 1px 2px rgb(28 27 23 / 0.06),
+    0 14px 32px -14px rgb(28 27 23 / 0.4);
+  mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+}
+
+.dock::-webkit-scrollbar {
+  display: none;
+}
+
+/* Rail items cancel their padding with a negative margin so the text sits on
+   the rail's edge; in a row of pills that would make them overlap. */
+.dock .rail-item {
+  margin-inline: 0;
+  white-space: nowrap;
+}
+
+.dock-divider {
+  width: 3px;
+  height: 3px;
+  margin-inline: 8px;
+  border-radius: 999px;
+  background: rgb(28 27 23 / 0.25);
+  flex-shrink: 0;
 }

@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": ["https://arsen.wtf", "https://www.arsen.wtf", "http://localhost:3000", "http://localhost:3123"],
+        "methods": ["GET", "HEAD"],
+        "headers": ["range", "if-match"]
+      },
+      "exposeHeaders": ["etag", "content-range", "content-length"],
+      "maxAgeSeconds": 86400
+    }
+  ]
+}

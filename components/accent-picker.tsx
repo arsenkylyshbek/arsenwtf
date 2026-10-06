@@ -44,7 +44,7 @@ export function AccentPicker() {
   }, [choice]);
 
   return (
-    <div className="fixed right-4 bottom-4 z-50 flex items-center gap-[7px]">
+    <div className="fixed right-4 bottom-4 z-50 hidden items-center gap-[7px] md:flex">
       {ACCENTS.map((name) => (
         <button
           key={name}

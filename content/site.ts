@@ -9,6 +9,7 @@
  * Any `body` or `intro` string understands two bits of markup:
  *
  *     [air street](https://press.airstreet.com)   → a link
+ *     [shaders](/shaders){accent}                 → a link as the accent button
  *     :bay cloud:                                 → an inline logo
  *     :the personal ai company:                   → keys may contain spaces
  *
@@ -44,6 +45,9 @@ export type Entry = {
   note?: string;
   /** Right column. Year, season — whatever the honest metadata is. */
   meta?: string;
+  /** A 16:9 hero screenshot of the live site (2400×1350). Entries with one
+   *  appear in their section's showcase carousel, if it has one. */
+  shot?: string;
   /** Shown on hover, desktop only. One image; keep it small and light. */
   preview?: string;
   /** Shown in the modal. The full set. */
@@ -90,6 +94,9 @@ export type Section = {
   /** Optional prose above the section's contents, one string per paragraph.
    *  Only `family` uses it — it's the one section that isn't an index. */
   intro?: string[];
+  /** A carousel of the entries' `shot`s under the list — the sites
+   *  themselves, after the index of them. */
+  showcase?: boolean;
   entries: Entry[];
 };
 
@@ -115,9 +122,10 @@ export const INTRO = {
   avatar: "/avatar.jpg",
   lead: "hey, i'm arsen :)",
   body: [
-    "i'm building :bay cloud: [bay cloud](https://thebay.cloud) - cloud for ai generated code.",
-    "i'm also a founding engineer at :speko: [speko](https://speko.ai) (:yc: yc s26) - openrouter for voice ai.",
-    "born in kazakhstan, now in london. before this i cofounded :the personal ai company: [the personal ai company](https://github.com/thepersonalaicompany/amurex) and was cto there. we raised $250k from :entrepreneur first: [entrepreneurs first](https://www.joinef.com/wp-content/themes/joinef2023/img/framework/logo-new.svg), got 2.9k stars on github and became #2 product of the day on :product hunt: [product hunt](https://www.producthunt.com/products/amurex/launches/amurex)",
+    "i'm a founding engineer at :speko: [speko](https://speko.ai) (:yc: yc s26) - openrouter for voice ai.",
+    "i also make [shaders](/shaders){accent} - fast, zero-dependency backgrounds for the web.",
+    "on the side i built :otpfill: [otpfill](https://otpfill.com) in one day - a mac menu-bar app that fills in the verification codes sites email you.",
+    "born and raised in kazakhstan. i was cto and cofounder of :the personal ai company: [the personal ai company](https://github.com/thepersonalaicompany/amurex) - $250k from :entrepreneur first: [entrepreneurs first](https://www.joinef.com/wp-content/themes/joinef2023/img/framework/logo-new.svg), 2.9k github stars, #2 on :product hunt: [product hunt](https://www.producthunt.com/products/amurex/launches/amurex).",
     "i've been building since i was 10, and definitely will be building forever. i'm very much into product and design side, but can/would love to take over the deeper infra stuff too.",
     "i'm also into airplanes - at some point i'll build a supersonic one!"
   ],
@@ -142,19 +150,6 @@ export const SECTIONS: Section[] = [
         preview: "/shots/speko.jpg",
         body: ["openrouter for voice ai. yc s26."],
         links: [{ label: "speko.ai", href: "https://speko.ai" }],
-      },
-      {
-        id: 1,
-        title: "bay cloud",
-        note: "co-founder",
-        meta: "2026-",
-        preview: "/work/bay.jpg",
-        body: [
-          "the cloud for the ai era. one command — npx bay ship — and it reads your stack, provisions the infrastructure, and hands back a live url in about forty seconds. database, storage and custom domains come with it rather than being four more decisions.",
-          "the part that isn't just a faster heroku: it watches production, and when something breaks the internal ai reads the code, writes the patch and redeploys on its own. built so a coding agent can own its own deployments end to end, which is the actual bet — the deployer stops being a person.",
-        ],
-        images: ["/work/bay.jpg"],
-        links: [{ label: "thebay.cloud", href: "https://thebay.cloud" }],
       },
       {
         id: 2,
@@ -239,10 +234,49 @@ export const SECTIONS: Section[] = [
     id: "hangar",
     title: "hangar",
     intro: [
-      "everything i've built that wasn't a job. some of it shipped and found users, some stalled at eighty percent, one of them is the site you're reading right now.",
-      "basically these are the best designs i've ever built.",
+      "my portfolio - the best designs i've built. some were for work, some for myself, one of them is the site you're reading right now.",
     ],
+    showcase: true,
     entries: [
+      {
+        id: 8,
+        title: "speko",
+        meta: "2026",
+        embed: "https://speko.ai",
+        preview: "/hangar/speko.jpg",
+        shot: "/hangar/speko.jpg",
+        links: [{ label: "speko.ai", href: "https://speko.ai" }],
+        body: [
+          "the best design i've ever built. a developer site for the router for voice ai - every speech model, benchmarked language by language, wired into one api.",
+        ],
+      },
+      {
+        id: 7,
+        title: "otpfill",
+        meta: "2026",
+        embed: "https://otpfill.com",
+        preview: "/hangar/otpfill.jpg",
+        shot: "/hangar/otpfill.jpg",
+        links: [{ label: "otpfill.com", href: "https://otpfill.com" }],
+        body: [
+          "a mac menu-bar app: when a site emails you a verification code, it shows up right under the code field. click fill and you're in.",
+          "built in one day.",
+        ],
+      },
+      {
+        id: 1,
+        title: "bay cloud",
+        meta: "2026",
+        embed: "https://thebay.cloud",
+        preview: "/shots/bay.jpg",
+        shot: "/hangar/bay.jpg",
+        links: [{ label: "thebay.cloud", href: "https://thebay.cloud" }],
+        body: [
+          "the cloud for the agentic era. one command — npx bay ship — and it reads your stack, provisions the infrastructure, and hands back a live url in about forty seconds. database, storage and custom domains came with it rather than being four more decisions.",
+          "the bet was that the deployer stops being a person: bay watched production, and when something broke the internal ai read the code, wrote the patch and redeployed on its own. i built the landing page and the whole ui.",
+          "not working on it anymore, but i still think the idea is right.",
+        ],
+      },
       {
         id: 2,
         title: "dial",
@@ -250,12 +284,14 @@ export const SECTIONS: Section[] = [
         links: [{ label: "dialnow.app", href: "https://dialnow.app" }],
         meta: "2026",
         preview: "/shots/dial.jpg",
+        shot: "/hangar/dial.jpg",
         body: ["an ai friend you can actually call."],
       },
       {
         id: 3,
         title: "agentnotes",
         preview: "/shots/agentnotes.jpg",
+        shot: "/hangar/agentnotes.jpg",
         embed: "https://agentnotes.cc",
         links: [{ label: "agentnotes.cc", href: "https://agentnotes.cc" }],
         meta: "2026",
@@ -268,12 +304,14 @@ export const SECTIONS: Section[] = [
         links: [{ label: "crmsonic.kz", href: "https://crmsonic.kz" }],
         meta: "2026",
         preview: "/shots/sonic.jpg",
+        shot: "/hangar/sonic.jpg",
         body: ["ai native crm for asia."],
       },
       {
         id: 5,
         title: "hattori",
         preview: "/shots/hattori.jpg",
+        shot: "/hangar/hattori.jpg",
         embed: "https://www.hattori.app/",
         links: [{ label: "hattori.app", href: "https://www.hattori.app/" }],
         meta: "2025",
@@ -342,8 +380,8 @@ export const SECTIONS: Section[] = [
         id: 6,
         title: "my home",
         meta: "2026",
-        preview: "/photos/in-the-car.jpg",
-        images: ["/photos/in-the-car.jpg"],
+        preview: "/photos/home.jpg",
+        images: ["/photos/home.jpg"],
       },
     ],
   },

@@ -29,10 +29,15 @@ export function PhotoAlbum({ entries }: { entries: Entry[] }) {
           photos always are, that leaves dead space under the shorter ones and
           knocks the captions out of line. The cost is column-major reading
           order, which an album doesn't care about; the alternative was
-          cropping everything to a uniform ratio. */}
-      <ul className="columns-1 gap-6 sm:columns-2">
+          cropping everything to a uniform ratio.
+
+          Two at every width, including phones. Collapsing to one column there
+          turns the album into a stack of full-bleed photos you scroll past one
+          at a time, which reads as a feed; the whole point of an album is
+          seeing several at once. The gutters tighten instead. */}
+      <ul className="columns-2 gap-3 sm:gap-6">
         {entries.map((photo) => (
-          <li key={photo.id} className="mb-8 break-inside-avoid">
+          <li key={photo.id} className="mb-4 break-inside-avoid sm:mb-8">
             <button
               type="button"
               onClick={() => setOpen(photo)}
@@ -49,7 +54,7 @@ export function PhotoAlbum({ entries }: { entries: Entry[] }) {
                 />
               </span>
 
-              <span className="mt-2 flex items-baseline justify-between gap-4">
+              <span className="mt-2 flex items-baseline justify-between gap-2 sm:gap-4">
                 <span className="meta text-ink-muted transition-colors duration-150 group-hover:text-ink">
                   {photo.title}
                 </span>

@@ -6,8 +6,9 @@ import type { ReactNode } from "react";
  * Two things only, because two is what the content actually needs and every
  * further rule is another thing to remember at 1am:
  *
- *   [label](https://url)   a link
- *   :key:                  an inline logo, from the LOGOS map below
+ *   [label](https://url)          a link
+ *   [label](https://url){accent}  a link drawn as the accent button
+ *   :key:                         an inline logo, from the LOGOS map below
  *
  * Links use markdown's shape rather than `label[url]`. In `i was cto at
  * amurex[url]` there is no way to know whether the link is "amurex" or the
@@ -45,6 +46,7 @@ export const LOGOS: Record<string, Logo> = {
   "product hunt": "/logos/producthunt.png",
   ef: "/logos/ef.jpg",
   "entrepreneur first": "/logos/ef.jpg",
+  otpfill: "/logos/otpfill.png",
 
   // Wide marks need their own height. A badge is 4.5:1, so at the square
   // default its text renders at about 6px and can't be read — the number is
@@ -66,7 +68,7 @@ export function RichText({ text }: { text: string }) {
   // handled two ways: the key must START with a letter or digit, ruling out
   // the common "colon-space" case, and any key not in LOGOS falls through to
   // the literal text below — so a wrong guess costs nothing.
-  const token = /\[([^\]]+)\]\(([^)\s]+)\)|:([a-z0-9][a-z0-9 ._-]{0,39}):/g;
+  const token = /\[([^\]]+)\]\(([^)\s]+)\)(\{accent\})?|:([a-z0-9][a-z0-9 ._-]{0,39}):/g;
 
   const nodes: ReactNode[] = [];
   let cursor = 0;
@@ -75,7 +77,7 @@ export function RichText({ text }: { text: string }) {
   while ((match = token.exec(text)) !== null) {
     if (match.index > cursor) nodes.push(text.slice(cursor, match.index));
 
-    const [, label, href, logo] = match;
+    const [, label, href, accent, logo] = match;
 
     if (href) {
       nodes.push(
@@ -84,7 +86,11 @@ export function RichText({ text }: { text: string }) {
           href={href}
           target={href.startsWith("http") ? "_blank" : undefined}
           rel={href.startsWith("http") ? "noreferrer" : undefined}
-          className="text-ink underline decoration-ink/25 underline-offset-4 transition-colors duration-150 hover:decoration-ink"
+          className={
+            accent
+              ? "pill pill-accent pill-inline"
+              : "text-ink underline decoration-ink/25 underline-offset-4 transition-colors duration-150 hover:decoration-ink"
+          }
         >
           {/* Parsed again so a label can hold a logo — which is how a badge
               becomes clickable, the way it behaves on github. Recursion is

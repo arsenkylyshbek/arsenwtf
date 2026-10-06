@@ -25,7 +25,9 @@ export default function Home() {
                 alt=""
                 className="size-[var(--text-display--line-height)] shrink-0 rounded-full border border-ink/10 object-cover"
               />
-              <h1 className="font-display text-display font-normal text-balance text-ink">
+              {/* One line at every width: on phones the size scales with the
+                  viewport instead of the name breaking onto two lines. */}
+              <h1 className="font-display text-[clamp(26px,8.4vw,44px)] leading-[1.1] font-normal tracking-[-0.032em] whitespace-nowrap text-ink sm:text-display sm:leading-[var(--text-display--line-height)]">
                 {INTRO.name}
               </h1>
             </div>

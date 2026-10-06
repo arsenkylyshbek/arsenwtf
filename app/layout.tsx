@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { GeistSans } from "geist/font/sans";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -36,6 +37,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#fbf9f3",
+  // Lets the dock read env(safe-area-inset-bottom) above the home indicator.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -56,17 +59,24 @@ export default function RootLayout({
         <SpecProvider>
           <PaperBackground />
 
-          <div className="shell relative z-10 pt-32 pb-24">
+          <div className="shell relative z-10 pt-16 pb-32 md:pt-32 md:pb-24">
             <SpecBox
               label="nav · body/16 · Inter 400"
-              className="w-full shrink-0 md:sticky md:top-32 md:h-fit md:w-[var(--layout-rail)]"
+              className="hidden w-full shrink-0 md:sticky md:top-32 md:block md:h-fit md:w-[var(--layout-rail)]"
             >
               <SiteRail />
             </SpecBox>
             <main className="min-w-0 flex-1">{children}</main>
           </div>
 
+          {/* Phones: the rail becomes a dock along the bottom edge. */}
+          <div className="md:hidden">
+            <SiteRail variant="dock" />
+          </div>
+
           <AccentPicker />
+          {/* Vercel Web Analytics: cookieless page views. No-op outside Vercel. */}
+          <Analytics />
           <SpecOverlay />
         </SpecProvider>
       </body>

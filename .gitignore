@@ -40,3 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .gstack/
+
+# city map tiles: built by scripts/cities, hosted on R2
+/public/maps/
+/scripts/cities/.venv/
+/public/vendor/maplibre/

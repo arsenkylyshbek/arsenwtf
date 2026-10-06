@@ -134,7 +134,7 @@ export function SpecOverlay() {
         type="button"
         onClick={toggle}
         aria-pressed={enabled}
-        className={`fixed right-4 bottom-12 z-50 flex items-center gap-[6px] rounded-sm border px-[8px] py-[5px] font-meta text-[10px] leading-[14px] tracking-[0.08em] transition-colors duration-200 ${
+        className={`fixed right-4 bottom-12 z-50 max-md:hidden flex items-center gap-[6px] rounded-sm border px-[8px] py-[5px] font-meta text-[10px] leading-[14px] tracking-[0.08em] transition-colors duration-200 ${
           enabled
             ? "border-spec-structure bg-spec-structure text-paper"
             : "border-ink/12 bg-paper/70 text-ink-faint hover:border-ink/25 hover:text-ink-muted"
